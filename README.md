@@ -3,7 +3,7 @@
 # Step1: Take EC2 Instance with t2.xlarge instance type
 # Step2: Create IAM Role with Admin policy for eks-cluster and attach to ec2-instance
 # Step3: Install kubectl
-	curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.29/2023-01-11/bin/linux/amd64/kubectl
+	curl -LO https://dl.k8s.io/release/v1.30.0/bin/linux/arm64/kubectl
 	chmod +x ./kubectl
 	mkdir -p $HOME/bin
 	cp ./kubectl $HOME/bin/kubectl
