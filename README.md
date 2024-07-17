@@ -3,44 +3,7 @@
 # Step1: Take EC2 Instance with t2.xlarge instance type
 # Step2: Create IAM Role with Admin policy for eks-cluster and attach to ec2-instance
 # Step3: Install kubectl
-	curl -o kubectl https://amazon-eks.s3-us-west-2.amazonaws.com/1.14.6/2019-08-22/bin/linux/amd64/kubectl
-	chmod +x ./kubectl
-	mkdir -p $HOME/bin
-	cp ./kubectl $HOME/bin/kubectl
-	export PATH=$HOME/bin:$PATH
-	echo 'export PATH=$HOME/bin:$PATH' >> ~/.bashrc
-	source $HOME/.bashrc
-	kubectl version --short --client
-	
-	
-	curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.19.6/2021-01-05/bin/linux/amd64/kubectl
-	chmod +x ./kubectl
-	mkdir -p $HOME/bin
-	cp ./kubectl $HOME/bin/kubectl
-	export PATH=$HOME/bin:$PATH
-	echo 'export PATH=$HOME/bin:$PATH' >> ~/.bashrc
-	source $HOME/.bashrc
-	kubectl version --short --client
-	
-	curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.20.4/2021-04-12/bin/linux/amd64/kubectl
-	chmod +x ./kubectl
-	mkdir -p $HOME/bin
-	cp ./kubectl $HOME/bin/kubectl
-	export PATH=$HOME/bin:$PATH
-	echo 'export PATH=$HOME/bin:$PATH' >> ~/.bashrc
-	source $HOME/.bashrc
-	kubectl version --short --client
-	
-	curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.22.6/2022-03-09/bin/linux/amd64/kubectl
-	chmod +x ./kubectl
-	mkdir -p $HOME/bin
-	cp ./kubectl $HOME/bin/kubectl
-	export PATH=$HOME/bin:$PATH
-	echo 'export PATH=$HOME/bin:$PATH' >> ~/.bashrc
-	source $HOME/.bashrc
-	kubectl version --short --client
-	
-	curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.23.15/2023-01-11/bin/linux/amd64/kubectl
+	curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.29/2023-01-11/bin/linux/amd64/kubectl
 	chmod +x ./kubectl
 	mkdir -p $HOME/bin
 	cp ./kubectl $HOME/bin/kubectl
@@ -56,10 +19,10 @@
 
 # Step5: Cluster creation:
     eksctl create cluster --name=eksdemo \
-                      --region=us-east-1 \
-                      --zones=us-east-1a,us-east-1b \
+                      --region=ap-south-1 \
+                      --zones=ap-south-1a,ap-south-1b \
                       --without-nodegroup 
-   eksctl create cluster --name=eksdemo --region=us-east-1 --version=1.22 --zones=us-east-1a,us-east-1b --without-nodegroup
+   eksctl create cluster --name=eksdemo --region=ap-south-1 --version=1.29 --zones=ap-south-1a,ap-south-1b --without-nodegroup
 
 					  
 # Step6: Add Iam-Oidc-Providers:
@@ -70,12 +33,12 @@
 					  
 # Step7: Create node-group:
     eksctl create nodegroup --cluster=eksdemo \
-                       --region=us-east-1 \
+                       --region=ap-south-1 \
                        --name=eksdemo-ng-public \
                        --node-type=t2.medium \
                        --nodes=2 \
-                       --nodes-min=2 \
-                       --nodes-max=4 \
+                       --nodes-min=1 \
+                       --nodes-max=2 \
                        --node-volume-size=10 \
                        --ssh-access \
                        --ssh-public-key=devops-demo-est \
@@ -89,44 +52,24 @@
 # CleanUP
 Delete node-group:
 			   
- eksctl delete nodegroup --cluster=eksdemo-dev --region=us-east-1 --name=eksdemo-ng-public
+ eksctl delete nodegroup --cluster=eksdemo-dev --region=ap-south-1 --name=eksdemo-ng-public
 Delete Cluster:
 				   
-    eksctl delete cluster --name=eksdemo                       --region=us-east-1	
+    eksctl delete cluster --name=eksdemo                       --region=ap-south-1	
 		      
 		      
 # EKS-Fargate-Setup
 
 ## EKS Fargate Cluster Setup
 ```bash
-eksctl create cluster --name eksdemo --region us-east-1 --fargate
+eksctl create cluster --name eksdemo --region ap-south-1 --fargate
 ```
 
 ## OIDC Provider Creation
 ```bash
-eksctl utils associate-iam-oidc-provider --region=us-east-1 --cluster=eksdemo --approve
+eksctl utils associate-iam-oidc-provider --region=ap-south-1 --cluster=eksdemo --approve
 ```
 
-## Create Role to Access ECR from EKS Fargate Cluster
-```bash
-eksctl create iamserviceaccount \
-    --attach-policy-arn arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser \
-    --cluster eksdemo \
-    --name ecr-role \
-    --namespace default \
-    --override-existing-serviceaccounts \
-    --region us-east-1 \
-    --approve	
-```
-
-## Build and Push Image to ECR
-```bash
-docker pull nginx
-# Login to ECR
-aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 451060642371.dkr.ecr.us-east-1.amazonaws.com
-docker tag nginx:latest 451060642371.dkr.ecr.us-east-1.amazonaws.com/nginx:latest
-docker push 451060642371.dkr.ecr.us-east-1.amazonaws.com/nginx:latest
-```
 ## Deploy application with below
 ```bash
 cat << EOF > nginx-deployment.yaml
